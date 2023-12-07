@@ -1,0 +1,56 @@
+# Install required libraries
+!pip install matplotlib
+
+# Import necessary libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+from datetime import datetime
+
+# Load the dataset from the provided GitHub link
+url = 'HealthApp/HealthApp_2k.log'
+df = pd.read_csv(url, sep='\t', header=None, names=['timestamp', 'event'])
+df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+# Extract relevant information from the logs
+df['date'] = df['timestamp'].dt.date
+df['time'] = df['timestamp'].dt.time
+
+# Analyze workout times
+workout_times = df[df['event'] == 'Workout']
+workout_count = workout_times.groupby('date').size()
+
+# Analyze daily step counts
+step_counts = df[df['event'].str.startswith('StepCount')]
+step_counts['steps'] = step_counts['event'].str.extract('(\d+)').astype(float)
+daily_steps = step_counts.groupby('date')['steps'].sum()
+
+# Analyze active times
+active_times = df[df['event'] == 'Active']
+active_count = active_times.groupby('date').size()
+
+# Visualize the analytics
+plt.figure(figsize=(15, 10))
+
+# Plot workout times
+plt.subplot(3, 1, 1)
+plt.plot(workout_count.index, workout_count.values, marker='o', linestyle='-', color='b')
+plt.title('Workout Times')
+plt.xlabel('Date')
+plt.ylabel('Workouts')
+
+# Plot daily step counts
+plt.subplot(3, 1, 2)
+plt.plot(daily_steps.index, daily_steps.values, marker='o', linestyle='-', color='g')
+plt.title('Daily Step Counts')
+plt.xlabel('Date')
+plt.ylabel('Steps')
+
+# Plot active times
+plt.subplot(3, 1, 3)
+plt.plot(active_count.index, active_count.values, marker='o', linestyle='-', color='r')
+plt.title('Active Times')
+plt.xlabel('Date')
+plt.ylabel('Active Sessions')
+
+plt.tight_layout()
+plt.show()
